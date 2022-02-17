@@ -1,0 +1,113 @@
+{% extends 'partials/base.html' %}
+{% block title %}Post Detail Page{% endblock %}
+{% load crispy_forms_tags %}
+{% block content %}
+    <div class="container">
+        <div class="row mt-5 pt-3">
+            <div class="col-md-8 offset-md-2">
+                <div class="card mb-3" style="max-width: 540px;">
+                    <div class="row g-0">
+                      <div class="col-md-4">
+                        <img class="img-thumbnail rounded-pill" src="{{ user.profilemodel.image.url }}" alt="profile-img">
+                      </div>
+                      <div class="col-md-8">
+                        <div class="card-body">
+                            You are Logged In!!!! 
+                          <h5 class="card-title">{{ user.username }}</h5>
+                          <p class="card-text">{{ user.email }}</p>
+                          <small class="card-text">Last login : {{ user.last_login }}</small>
+                        </div>
+                      </div>
+                    </div>
+                </div>
+                <div class="card my-3 shadow">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4 content-markdown">
+                                <img class="img-thumbnail" src="{{ post.author.profilemodel.image.url }}" alt="profile-img">
+                            </div>
+                            <div class="col-md-8 content-markdown">
+                                <small>{{ post.date_created }}</small>
+                                {% if post.author == request.user %}
+                                <span><a class="btn btn-danger float-right btn-sm" href="{% url 'blog-post-delete' post.id %}"">Delete</a></span>
+                                <span><a class="btn btn-primary mx-2 float-right btn-sm" href="{% url 'blog-post-edit' post.id %}">Edit</a></span>
+                                <span><a class="btn btn-info mx-2 float-right btn-sm" href="{% url 'blog-index' %}">Back</a></span>
+                                <br/>
+                                <form action="{% url 'like_post' post.pk%}" method="POST">
+                                    {% csrf_token %}
+                                    {% if liked %}
+                                        <button type="submit" name="post_id" value="{{ post.id }}" , class="btn btn-danger btn-sm">Unlike</button> {{ total_likes }}
+                                    {% else %}    
+                                        <button type="submit" name="post_id" value="{{ post.id }}" , class="btn btn-primary btn-sm">Like</button> {{ total_likes }}
+                                    {% endif %} 
+                                        - Likes
+                                </form>
+                                {% endif %}
+                                <span>Share This Post</span>
+                                <div>
+                                    <p class="small-text-muted">
+                                        <a href="https://www.instagram.com/accounts/login/">Instagram</a>  |
+                                        <a href="https://twitter.com/">Twitter</a> |
+                                        <a href="https://in.pinterest.com/login/">Pinterest</a> 
+                                    </p>
+                                </div>
+                                <hr>
+                                <h4>{{ post.title|linebreaks }}</h4>
+                                <p>
+                                    {{ post.content| safe }}
+                                </p>
+                                <div class="fb-comments" data-href="{{ request.buld_absolute_uri }}" data-numposts="5">
+                                </div>
+                            </div>
+                            
+                        </div>
+                        <p class="mt-3">
+                            <a  class="" data-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false" aria-controls="collapseExample">
+                              Comments: {{ post.comment_count }}
+                            </a>
+                          </p>
+                          <div class="collapse" id="collapseExample">
+                            <div style="height: 250px; overflow-y: scroll;" class="card card-body">
+                            {% for comment in post.comments %} 
+                              <div> 
+                                <p class="text-justify">
+                                    {{ comment.content }}
+                                    <blockquote>
+                                        <footer class="col-md-8">
+                                            -via {{ comment.name }}
+                                        </footer>
+                                        <div class="col-sm-10 col-sm-offset-5 col-md-7 col-md-offset-0">
+                                            {% for child_comment in comment.children %}
+                                            <blockquote class="col-sm-8">
+                                                <p>{{ child_comment.content }}</p>
+                                                    <footer class="col-sm-10">
+                                                        -via {{ child_comment.name }}
+                                                    </footer>
+                                            </blockquote>
+                                            {% endfor %}
+                                        </div>
+                                        
+                                        <form method="POST">
+                                            {% csrf_token %}
+                                            {{ r_form|crispy }}
+                                            <input type="hidden" name="parent_id" value="{{ comment.id }}">
+                                            <input class="btn btn-primary btn-sm" type="submit" value="Reply">
+                                        </form>
+                                    </blockquote>
+                                    <hr/>
+                                </p>
+                             </div> 
+                            {% endfor %}
+                            </div>
+                          </div>
+                          <form method="POST">
+                              {% csrf_token %}
+                              {{ c_form|crispy }}
+                              <input class="btn btn-primary btn-sm" type="submit" value="Comment">
+                          </form>
+                    </div>
+                </div>
+            </div>   
+        </div>
+    </div>
+{% endblock %}
